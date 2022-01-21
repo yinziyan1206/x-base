@@ -6,7 +6,7 @@ import sys
 from setuptools import setup, find_packages
 
 PACKAGE = 'basex'
-NAME = 'basex'
+NAME = 'x-api-base'
 PY_VER = sys.version_info
 REQUIREMENTS = [
     'orjson',
@@ -21,19 +21,21 @@ AUTHOR = package.__author__
 DESCRIBE = package.__describe__
 
 CLASSIFIERS = [
-    'License :: OSI Approved :: MIT License',
     'Intended Audience :: Developers',
-    'Programming Language :: Python :: 3.8',
-    'Programming Language :: Python :: 3.9',
-    'Operating System :: ALL',
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    'Operating System :: OS Independent',
     'Environment :: Web Environment',
     'Development Status :: 3 - Alpha',
-    'Topic :: Restful API',
-    'Topic :: Restful API :: Back-Ends',
-    'Framework :: FastApi',
+    'Topic :: Internet',
+    'Topic :: Software Development :: Libraries :: Application Frameworks',
 ]
 
-KEYWORDS = ["api", "x-api", "basex"]
+KEYWORDS = ["api", "x-api", "x-api-base"]
 
 setup(
     name=NAME,
@@ -43,8 +45,8 @@ setup(
     description=DESCRIBE,
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    license="MIT",
-    url=f"https://github.com/yinziyan1206/{PACKAGE}",
+    license="BSD 2-Clause",
+    url=f"https://github.com/yinziyan1206/x-base",
     packages=find_packages(),
     install_requires=REQUIREMENTS,
     keywords=KEYWORDS,
