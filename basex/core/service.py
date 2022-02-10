@@ -64,8 +64,7 @@ class BaseService(Generic[Model]):
 
     async def save(self, data: Model, ignore_none=True) -> Optional[Model]:
         if data.create_time:
-            params = dict(data.dict().items())
-            return await self.update(data, ignore_none=ignore_none, **params)
+            return await self.update(data, ignore_none=ignore_none, **data.dict())
         return await self.create(data)
 
     async def delete(self, data: Model, logic_delete=True) -> int:
