@@ -57,10 +57,8 @@ setup(
     classifiers=CLASSIFIERS,
     ext_modules=cythonize(
         [
-            Extension('basex.common.cryptutils', ['basex/common/cryptutils.py']),
             Extension('basex.common.objectutils', ['basex/common/objectutils.py']),
             Extension('basex.common.stringutils', ['basex/common/stringutils.py']),
-            Extension('basex.config.content', ['basex/config/content.py']),
             Extension('basex.db.sequence', ['basex/db/sequence.py'])
         ],
         language_level=3,
