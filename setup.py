@@ -3,7 +3,8 @@ from __future__ import print_function
 
 import sys
 
-from setuptools import setup, find_packages
+from Cython.Build import cythonize
+from setuptools import setup, find_packages, Extension
 
 PACKAGE = 'basex'
 NAME = 'basex'
@@ -36,7 +37,9 @@ CLASSIFIERS = [
     'Topic :: Software Development :: Libraries :: Application Frameworks',
 ]
 
-KEYWORDS = ["api", "x-api", "x-api-base"]
+KEYWORDS = ["api", "x-api", "x-base", "basex"]
+packages = find_packages()
+
 
 setup(
     name=NAME,
@@ -48,8 +51,19 @@ setup(
     long_description_content_type="text/markdown",
     license="BSD 2-Clause",
     url=f"https://github.com/yinziyan1206/x-base",
-    packages=find_packages(),
+    packages=packages,
     install_requires=REQUIREMENTS,
     keywords=KEYWORDS,
-    classifiers=CLASSIFIERS
+    classifiers=CLASSIFIERS,
+    ext_modules=cythonize(
+        [
+            Extension('basex.common.cryptutils', ['basex/common/cryptutils.py']),
+            Extension('basex.common.objectutils', ['basex/common/objectutils.py']),
+            Extension('basex.common.stringutils', ['basex/common/stringutils.py']),
+            Extension('basex.config.content', ['basex/config/content.py']),
+            Extension('basex.db.sequence', ['basex/db/sequence.py'])
+        ],
+        language_level=3,
+        compiler_directives={},
+    )
 )

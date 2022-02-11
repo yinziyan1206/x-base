@@ -1,4 +1,3 @@
-#!/usr/bin/env pytho
 __author__ = 'ziyan.yin'
 
 from typing import Any
