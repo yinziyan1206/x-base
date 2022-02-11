@@ -10,9 +10,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.sql import Select
 
+
 from .entity import Page
 from ..db.mapper import SqlModel
 from ..db.session import execute_statement, execute_query
+
 
 Model = TypeVar('Model', bound=SqlModel)
 
