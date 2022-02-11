@@ -6,9 +6,10 @@ import sys
 from setuptools import setup, find_packages
 
 PACKAGE = 'basex'
-NAME = 'x-api-base'
+NAME = 'basex'
 PY_VER = sys.version_info
 REQUIREMENTS = [
+    'polars',
     'orjson',
     'loguru',
     'PyYAML',
