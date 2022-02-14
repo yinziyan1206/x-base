@@ -19,8 +19,7 @@ from ..db.session import execute_statement, execute_query
 Model = TypeVar('Model', bound=SqlModel)
 
 
-class BaseService(Generic[Model]):
-    root = None
+class SessionService:
 
     @staticmethod
     async def _execute_query(query):
@@ -29,6 +28,14 @@ class BaseService(Generic[Model]):
     @staticmethod
     async def _execute_statement(stmt):
         return await execute_statement(stmt)
+
+    async def query(self, sql: str) -> Result:
+        res = await self._execute_query(lambda x: x.execute(text(sql)))
+        return res
+
+
+class BaseService(Generic[Model], SessionService):
+    root = None
 
     def __new__(cls, *args, **kwargs):
         if not cls.root:
@@ -127,7 +134,7 @@ class BaseService(Generic[Model]):
             )
             if item := res.first():
                 page.total = item
-                page.pages = int((page.total - 0.1) / page.size) + 1
+                page.pages = int((page.total - 1) / page.size) + 1
 
             stmt_order = stmt
             for order in page.orders:
@@ -135,19 +142,16 @@ class BaseService(Generic[Model]):
                     getattr(self.model, order.column) if order.asc else getattr(self.model, order.column).desc()
                 )
 
-            res = await session.execute(
+            stream = await session.stream_scalars(
                 stmt_order.where(self.model.deleted == 0).limit(page.size).offset((page.current - 1) * page.size)
             )
-            return res
 
-        async def _get_records(mapper):
-            return [page.model.parse_obj(x) for x in mapper(await self._execute_query(_execute))]
+            records = []
+            async for data in stream:
+                records.append(page.model.parse_obj(data))
+            return records
 
-        if page.model is self.model:
-            page.records = await _get_records(lambda x: x.scalars())
-        else:
-            page.records = await _get_records(lambda x: x.mappings())
-
+        page.records = await self._execute_query(_execute)
         return page
 
     async def select(self, stmt: Select = None) -> List[Row]:
@@ -156,10 +160,6 @@ class BaseService(Generic[Model]):
 
         res = await self._execute_query(lambda x: x.execute(stmt.where(self.model.deleted == 0)))
         return res.all()
-
-    async def query(self, sql: str) -> Result:
-        res = await self._execute_query(lambda x: x.execute(text(sql)))
-        return res
 
     @property
     def model(self):

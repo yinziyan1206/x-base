@@ -1,4 +1,4 @@
-SQLAlchemy~=1.4.27
+sqlalchemy[asyncio]~=1.4
 sqlmodel
 loguru
 orjson
