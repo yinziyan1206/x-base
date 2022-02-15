@@ -10,7 +10,6 @@ PACKAGE = 'basex'
 NAME = 'basex'
 PY_VER = sys.version_info
 REQUIREMENTS = [
-    'polars',
     'orjson',
     'loguru',
     'PyYAML',
@@ -57,9 +56,9 @@ setup(
     classifiers=CLASSIFIERS,
     ext_modules=cythonize(
         [
-            Extension('basex.common.objectutils', ['basex/common/objectutils.py']),
-            Extension('basex.common.stringutils', ['basex/common/stringutils.py']),
-            Extension('basex.db.sequence', ['basex/db/sequence.py'])
+            Extension('basex.common.objectutils', ['basex/common/objectutils.pyx']),
+            Extension('basex.common.stringutils', ['basex/common/stringutils.pyx']),
+            Extension('basex.db.sequence', ['basex/db/sequence.pyx'])
         ],
         language_level=3,
         compiler_directives={},

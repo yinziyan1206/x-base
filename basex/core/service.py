@@ -2,6 +2,7 @@ __author__ = 'ziyan.yin'
 __describe__ = 'base service'
 
 import datetime
+import functools
 from typing import TypeVar, Generic, Optional, List, Callable
 
 from sqlalchemy import func, text
@@ -34,7 +35,7 @@ class SessionService:
         return res
 
     async def select(self, stmt: Select) -> List[Row]:
-        res = await self._execute_query(lambda x: x.execute(stmt.where(stmt.columns['deleted'] == 0)))
+        res = await self._execute_query(lambda x: x.execute(stmt.where(stmt.exported_columns['deleted'] == 0)))
         return res.all()
 
 
@@ -161,6 +162,7 @@ class BaseService(Generic[Model], SessionService):
         return page
 
     @property
+    @functools.lru_cache
     def model(self):
         temp = self.__class__
         while hasattr(temp, '__orig_bases__'):
@@ -168,5 +170,5 @@ class BaseService(Generic[Model], SessionService):
         return temp.__args__[0]
 
     @staticmethod
-    def _init_fn(select: Select) -> Select:
-        return select
+    def _init_fn(stmt: Select) -> Select:
+        return stmt

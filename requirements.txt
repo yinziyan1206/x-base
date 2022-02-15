@@ -1,7 +1,8 @@
 sqlalchemy[asyncio]~=1.4
-sqlmodel
-loguru
-orjson
+sqlmodel~=0.0.6
+loguru~=0.6.0
+orjson~=3.6.7
 PyYAML
-setuptools
-anyio
+anyio~=3.5.0
+pydantic~=1.9.0
+Cython

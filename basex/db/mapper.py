@@ -2,6 +2,7 @@ __author__ = 'ziyan.yin'
 __describe__ = 'base model'
 
 import datetime
+import functools
 from typing import Optional
 
 import orjson
@@ -20,6 +21,7 @@ def next_val():
     return index
 
 
+@functools.lru_cache
 def table_name_structure(name):
     output = []
     for i, c in enumerate(name.removesuffix('Model')):

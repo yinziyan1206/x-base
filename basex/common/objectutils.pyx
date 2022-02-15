@@ -2,12 +2,16 @@ __author__ = 'ziyan.yin'
 
 from typing import Any
 
+import cython
 
+
+@cython.infer_types(True)
 def is_empty(arg: Any) -> bool:
     """
         check if object is none or empty
             >>> obj = ''
             >>> is_empty(obj)
+            True
     """
     if arg is None:
         return True
@@ -20,22 +24,24 @@ def is_empty(arg: Any) -> bool:
     return False
 
 
-def default_if_null(arg: Any, default='') -> Any:
+@cython.infer_types(True)
+def default_if_null(arg: Any, default: Any=None) -> Any:
     """
         get obj if not none else default data
             >>> default_if_null(None, [])
-        return []
+            []
             >>> default_if_null('a', [])
-        return 'a'
+            'a'
     """
     return arg if arg is not None else default
 
 
-def first_not_null(*args) -> Any:
+@cython.infer_types(True)
+def first_not_null(*args: Any) -> Any:
     """
         get list obj first not-null object
             >>> first_not_null(None, 'a', 'b')
-        return 'a'
+            'a'
     """
     if args is not None:
         for arg in args:
@@ -44,11 +50,12 @@ def first_not_null(*args) -> Any:
     return None
 
 
-def all_not_null(*args) -> bool:
+@cython.infer_types(True)
+def all_not_null(*args: Any) -> bool:
     """
         check if all in list is not none
             >>> all_not_null('a', None)
-        return False
+            False
     """
     if args is not None:
         for arg in args:
@@ -58,10 +65,12 @@ def all_not_null(*args) -> bool:
     return False
 
 
-def equals(arg1, arg2) -> bool:
+@cython.infer_types(True)
+def equals(arg1: Any, arg2: Any) -> bool:
     """
         check if two object equal
             >>> equals('a', 'b')
+            False
     """
     if arg1 == arg2:
         return True
