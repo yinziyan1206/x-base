@@ -2,7 +2,7 @@ __author__ = 'ziyan.yin'
 __describe__ = 'base service'
 
 import datetime
-from typing import TypeVar, Generic, Optional, List
+from typing import TypeVar, Generic, Optional, List, Callable
 
 from sqlalchemy import func, text
 from sqlalchemy.engine import Result, Row
@@ -33,6 +33,10 @@ class SessionService:
         res = await self._execute_query(lambda x: x.execute(text(sql)))
         return res
 
+    async def select(self, stmt: Select) -> List[Row]:
+        res = await self._execute_query(lambda x: x.execute(stmt.where(stmt.columns['deleted'] == 0)))
+        return res.all()
+
 
 class BaseService(Generic[Model], SessionService):
     root = None
@@ -43,6 +47,7 @@ class BaseService(Generic[Model], SessionService):
         return cls.root
 
     def __init__(self):
+        self.stmt = select(self.model)
         super().__init__()
 
     async def get(self, index) -> Optional[Model]:
@@ -107,28 +112,30 @@ class BaseService(Generic[Model], SessionService):
 
         return await self._execute_statement(_execute)
 
-    async def select_list(self, stmt: Select = None) -> List[Model]:
-        if stmt is None:
-            stmt = select(self.model)
-
-        res = await self._execute_query(lambda x: x.scalars(stmt.where(self.model.deleted == 0)))
+    async def select_list(self, fn: Callable[[Select], Select] = None) -> List[Model]:
+        if fn is None:
+            fn = self._init_fn
+        res = await self._execute_query(lambda x: x.scalars(fn(self.stmt).where(self.model.deleted == 0)))
         return res.all()
 
-    async def select_one(self, stmt: Select = None) -> Optional[Model]:
-        if stmt is None:
-            stmt = select(self.model)
-
-        res = await self._execute_query(lambda x: x.scalars(stmt.where(self.model.deleted == 0).limit(1)))
+    async def select_one(self, fn: Callable[[Select], Select] = None) -> Optional[Model]:
+        if fn is None:
+            fn = self._init_fn
+        res = await self._execute_query(lambda x: x.scalars(fn(self.stmt).where(self.model.deleted == 0).limit(1)))
         return res.one_or_none()
 
-    async def select_page(self, page: Page, stmt: Select = None) -> Page:
+    async def select_page(self, page: Page, fn: Callable[[Select], Select] = None) -> Page:
+        if fn is None:
+            fn = self._init_fn
+
         page.current = 1 if page.current < 1 else page.current
         page.size = 10 if page.size < 1 else page.size
         page.orders = [] if not page.orders else page.orders
-        if stmt is None:
-            stmt = select(self.model)
+        stmt = fn(self.stmt)
 
         async def _execute(session):
+            nonlocal stmt
+
             res = await session.scalars(
                 stmt.with_only_columns(func.count(self.model.id)).where(self.model.deleted == 0)
             )
@@ -136,14 +143,13 @@ class BaseService(Generic[Model], SessionService):
                 page.total = item
                 page.pages = int((page.total - 1) / page.size) + 1
 
-            stmt_order = stmt
             for order in page.orders:
-                stmt_order = stmt_order.order_by(
+                stmt = stmt.order_by(
                     getattr(self.model, order.column) if order.asc else getattr(self.model, order.column).desc()
                 )
 
             stream = await session.stream_scalars(
-                stmt_order.where(self.model.deleted == 0).limit(page.size).offset((page.current - 1) * page.size)
+                stmt.where(self.model.deleted == 0).limit(page.size).offset((page.current - 1) * page.size)
             )
 
             records = []
@@ -154,16 +160,13 @@ class BaseService(Generic[Model], SessionService):
         page.records = await self._execute_query(_execute)
         return page
 
-    async def select(self, stmt: Select = None) -> List[Row]:
-        if stmt is None:
-            stmt = select(self.model)
-
-        res = await self._execute_query(lambda x: x.execute(stmt.where(self.model.deleted == 0)))
-        return res.all()
-
     @property
     def model(self):
         temp = self.__class__
         while hasattr(temp, '__orig_bases__'):
             temp = getattr(temp, '__orig_bases__')[0]
         return temp.__args__[0]
+
+    @staticmethod
+    def _init_fn(select: Select) -> Select:
+        return select

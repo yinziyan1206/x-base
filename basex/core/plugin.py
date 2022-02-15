@@ -25,7 +25,7 @@ class PageFilterService(SessionService):
     def __init__(self):
         super().__init__()
 
-    async def select_page(self,  page: Page, stmt: Select) -> Page:
+    async def query_page(self,  page: Page, stmt: Select) -> Page:
         page.current = 1 if page.current < 1 else page.current
         page.size = 10 if page.size < 1 else page.size
         page.orders = [] if not page.orders else page.orders
