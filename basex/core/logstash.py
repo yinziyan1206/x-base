@@ -21,3 +21,7 @@ class LoggerHandler(logging.Handler):
             depth += 1
 
         logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
+
+
+def intercept(module=None):
+    logging.getLogger(module).handlers = [LoggerHandler()]

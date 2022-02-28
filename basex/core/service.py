@@ -5,12 +5,12 @@ import datetime
 import functools
 from typing import TypeVar, Generic, Optional, List, Callable
 
-from sqlalchemy import func, text
+from sqlalchemy import func
 from sqlalchemy.engine import Result, Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.sql import Select
-
+from sqlalchemy.sql.elements import TextClause
 
 from .entity import Page
 from ..db.mapper import SqlModel
@@ -30,8 +30,8 @@ class SessionService:
     async def _execute_statement(stmt):
         return await execute_statement(stmt)
 
-    async def query(self, sql: str) -> Result:
-        res = await self._execute_query(lambda x: x.execute(text(sql)))
+    async def query(self, sql: TextClause, **kwargs) -> Result:
+        res = await self._execute_query(lambda x: x.execute(sql, kwargs))
         return res
 
     async def select(self, stmt: Select) -> List[Row]:

@@ -4,6 +4,7 @@ __describe__ = ''
 import polars
 from sqlalchemy import text, func
 from sqlalchemy.sql import Select
+from sqlalchemy.sql.elements import TextClause
 
 from basex.core.entity import Page
 from basex.core.service import SessionService
@@ -14,8 +15,8 @@ class DataFrameService(SessionService):
     def __init__(self):
         super().__init__()
 
-    async def query_dataframe(self, sql: str) -> polars.DataFrame:
-        res = (await self._execute_query(lambda x: x.execute(text(sql)))).mappings()
+    async def query_dataframe(self, sql: TextClause, **kwargs) -> polars.DataFrame:
+        res = (await self._execute_query(lambda x: x.execute(sql, kwargs))).mappings()
         return polars.from_dicts([dict(x) for x in res.all()])
 
 
@@ -32,7 +33,7 @@ class PageFilterService(SessionService):
         async def _execute(session):
             count_stmt = stmt.with_only_columns(func.count())
             res = await session.scalars(
-                count_stmt.where(count_stmt.exported_columns['deleted']["deleted"] == 0)
+                count_stmt.where(count_stmt.exported_columns['deleted'] == 0)
             )
             if item := res.first():
                 page.total = item

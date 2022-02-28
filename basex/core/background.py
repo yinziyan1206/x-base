@@ -5,7 +5,7 @@ import asyncio
 import functools
 from multiprocessing import cpu_count
 from concurrent.futures import ProcessPoolExecutor
-from typing import Awaitable, Callable
+from typing import Callable, Coroutine, Awaitable
 
 import anyio
 
@@ -18,7 +18,7 @@ def create_process_workers():
     executor = ProcessPoolExecutor(max_workers=worker_count)
 
 
-async def call_subprocess(func, *args, **kwargs) -> Awaitable:
+def call_subprocess(func, *args, **kwargs) -> Awaitable:
     """
     use multiprocess to execute function for event loop
 
@@ -31,10 +31,10 @@ async def call_subprocess(func, *args, **kwargs) -> Awaitable:
         create_process_workers()
     loop = asyncio.get_running_loop()
     task = functools.partial(func, **kwargs)
-    return await loop.run_in_executor(executor, task, *args)
+    return loop.run_in_executor(executor, task, *args)
 
 
-async def call_async(func, *args, **kwargs) -> Awaitable:
+def call_async(func, *args, **kwargs) -> Coroutine:
     """
     use threads to execute function for event loop
 
@@ -54,7 +54,7 @@ def run_in_thread(func) -> Callable:
     :param func: a callable
     :return: wrapped callable
     """
-    def wrapper(*args, **kwargs) -> Awaitable:
+    def wrapper(*args, **kwargs) -> Coroutine:
         task = functools.partial(func, **kwargs)
         return anyio.to_thread.run_sync(task, *args)
     return wrapper

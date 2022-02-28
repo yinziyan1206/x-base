@@ -1,14 +1,12 @@
 __author__ = 'ziyan.yin'
 __describe__ = 'global content'
 
-import logging
-
 from loguru import logger
 import os
 import yaml
 
 from ..common import objectutils
-from ..core.logstash import LoggerHandler
+from ..core.logstash import intercept
 
 env = 'application%s.yaml'
 server: dict = {}
@@ -55,4 +53,4 @@ def init(stage=""):
         logger.exception(ex)
         raise
 
-    logging.getLogger().handlers = [LoggerHandler()]
+    intercept()
