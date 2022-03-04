@@ -11,16 +11,20 @@ from basex.core.entity import Page, DataTableEntity
 from basex.core.service import SessionService
 from basex.db.mapper import SqlModel
 
+try:
+    import polars as dataframe
+except ImportError:
+    try:
+        import pandas as dataframe
+    except ImportError:
+        dataframe = None
+
 
 class DataFrameService(SessionService):
-    try:
-        import polars as df
-    except ImportError:
-        import pandas as df
 
-    async def query_dataframe(self, sql: TextClause, **kwargs) -> df.DataFrame:
+    async def query_dataframe(self, sql: TextClause, **kwargs) -> dataframe.DataFrame:
         res = (await self._execute_query(lambda x: x.execute(sql, kwargs))).mappings()
-        return self.df.from_dicts([dict(x) for x in res.all()])
+        return dataframe.from_dicts([dict(x) for x in res.all()])
 
 
 class DataTableService(SessionService):
