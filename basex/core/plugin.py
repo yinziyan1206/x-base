@@ -1,29 +1,67 @@
 __author__ = 'ziyan.yin'
 __describe__ = ''
 
-import polars
-from sqlalchemy import text, func
+from typing import List
+
+from sqlalchemy import func
 from sqlalchemy.sql import Select
 from sqlalchemy.sql.elements import TextClause
 
-from basex.core.entity import Page
+from basex.core.entity import Page, DataTableEntity
 from basex.core.service import SessionService
+from basex.db.mapper import SqlModel
 
 
 class DataFrameService(SessionService):
+    try:
+        import polars as df
+    except ImportError:
+        import pandas as df
 
-    def __init__(self):
-        super().__init__()
-
-    async def query_dataframe(self, sql: TextClause, **kwargs) -> polars.DataFrame:
+    async def query_dataframe(self, sql: TextClause, **kwargs) -> df.DataFrame:
         res = (await self._execute_query(lambda x: x.execute(sql, kwargs))).mappings()
-        return polars.from_dicts([dict(x) for x in res.all()])
+        return self.df.from_dicts([dict(x) for x in res.all()])
+
+
+class DataTableService(SessionService):
+
+    async def parse_sql(self, sql: TextClause, **kwargs) -> DataTableEntity:
+        result = await self.query(sql, **kwargs)
+        columns = list(result.keys())
+        if rows := result.all():
+            return DataTableEntity(
+                name="",
+                header=columns,
+                data=[tuple(row) for row in rows]
+            )
+        return DataTableEntity(name="", header=columns, data=[])
+
+    async def parse_stmt(self, stmt: Select) -> DataTableEntity:
+        if rows := await self.select(stmt):
+            return DataTableEntity(
+                name="",
+                header=rows[0].keys(),
+                data=[tuple(row) for row in rows]
+            )
+        return DataTableEntity(name="", header=[], data=[])
+
+    def parse_obj(self, rows: List[SqlModel]) -> DataTableEntity:
+        if not hasattr(self, 'model'):
+            raise NotImplementedError
+        columns = list(getattr(self, 'model').__fields__.keys())
+        return DataTableEntity(name="", header=columns, data=[row.dict().values() for row in rows])
+
+    @staticmethod
+    def to_dicts(data: DataTableEntity) -> List[dict]:
+        columns = data.header
+        rows = data.data
+        res = []
+        for row in rows:
+            res.append({key: value for key, value in zip(columns, row)})
+        return res
 
 
 class PageFilterService(SessionService):
-
-    def __init__(self):
-        super().__init__()
 
     async def query_page(self, page: Page, stmt: Select) -> Page:
         page.current = 1 if page.current < 1 else page.current

@@ -87,3 +87,8 @@ class ResultEntity(BaseEntity, GenericModel, Generic[Model]):
     def error(cls, exc: BusinessError):
         return cls(code=exc.code, success=False, message=exc.message)
 
+
+class DataTableEntity(BaseEntity):
+    name: str
+    header: List[str]
+    data: List[tuple]
