@@ -22,9 +22,13 @@ except ImportError:
 
 class DataFrameService(SessionService):
 
-    async def query_dataframe(self, sql: TextClause, **kwargs) -> dataframe.DataFrame:
-        res = (await self._execute_query(lambda x: x.execute(sql, kwargs))).mappings()
-        return dataframe.from_dicts([dict(x) for x in res.all()])
+    if dataframe:
+        async def query_dataframe(self, sql: TextClause, **kwargs) -> dataframe.DataFrame:
+            res = (await self._execute_query(lambda x: x.execute(sql, kwargs))).mappings()
+            return dataframe.from_dicts([dict(x) for x in res.all()])
+    else:
+        async def query_dataframe(self, sql: TextClause, **kwargs):
+            raise NotImplementedError
 
 
 class DataTableService(SessionService):
