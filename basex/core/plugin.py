@@ -26,9 +26,6 @@ class DataFrameService(SessionService):
         async def query_dataframe(self, sql: TextClause, **kwargs) -> dataframe.DataFrame:
             res = (await self._execute_query(lambda x: x.execute(sql, kwargs))).mappings()
             return dataframe.from_dicts([dict(x) for x in res.all()])
-    else:
-        async def query_dataframe(self, sql: TextClause, **kwargs):
-            raise NotImplementedError
 
 
 class DataTableService(SessionService):
@@ -57,7 +54,11 @@ class DataTableService(SessionService):
         if not hasattr(self, 'model'):
             raise NotImplementedError
         columns = list(getattr(self, 'model').__fields__.keys())
-        return DataTableEntity(name="", header=columns, data=[row.dict().values() for row in rows])
+        return DataTableEntity(
+            name="",
+            header=columns,
+            data=[tuple(map(lambda col, value=row: value.__dict__[col], columns)) for row in rows]
+        )
 
     @staticmethod
     def to_dicts(data: DataTableEntity) -> List[dict]:
