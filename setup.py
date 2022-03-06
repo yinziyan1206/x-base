@@ -14,7 +14,8 @@ REQUIREMENTS = [
     'loguru',
     'PyYAML',
     'pydantic',
-    'sqlalchemy>=1.4'
+    'dynaconf',
+    'sqlalchemy[asyncio]>=1.4'
 ]
 package = __import__(PACKAGE)
 VERSION = package.__version__

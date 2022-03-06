@@ -1,9 +1,10 @@
-sqlalchemy[asyncio]~=1.4
+sqlalchemy[asyncio]
 sqlmodel
-loguru~=0.6.0
+loguru
 orjson
 PyYAML
 setuptools
 anyio
 pydantic
+dynaconf
 Cython

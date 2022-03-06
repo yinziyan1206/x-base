@@ -7,7 +7,7 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from ..config import content
+from ..config import settings
 
 engine = None
 create_session: Callable = lambda: None
@@ -17,11 +17,11 @@ def initial_engine():
     global engine
     global create_session
     engine = create_async_engine(
-        **{k: v for k, v in content.db.items() if k not in ('package', 'expire_on_commit')}
+        **{k: v for k, v in settings.db.items() if k not in ('package', 'expire_on_commit')}
     )
     create_session = sessionmaker(
         engine,
-        expire_on_commit=content.db['expire_on_commit'] if 'expire_on_commit' in content.db else False,
+        expire_on_commit=settings.db['expire_on_commit'] if 'expire_on_commit' in settings.db else False,
         class_=AsyncSession,
     )
 
