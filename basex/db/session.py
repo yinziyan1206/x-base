@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 from ..config import settings
+from ..native import logstash
 
 engine = None
 create_session: Callable = lambda: None
@@ -24,6 +25,7 @@ def initial_engine():
         expire_on_commit=settings.db['expire_on_commit'] if 'expire_on_commit' in settings.db else False,
         class_=AsyncSession,
     )
+    logstash.intercept('sqlalchemy.engine.Engine')
 
 
 async def execute_statement(func: Callable[[AsyncSession], Any]):

@@ -2,9 +2,9 @@ sqlalchemy[asyncio]
 sqlmodel
 loguru
 orjson
-PyYAML
 setuptools
 anyio
 pydantic
 dynaconf
+pybase64
 Cython

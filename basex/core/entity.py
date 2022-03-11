@@ -11,7 +11,7 @@ from pydantic.generics import GenericModel
 from .enums import ResultEnum
 
 
-Model = TypeVar('Model', bound=BaseModel)
+Model = TypeVar('Model', bound=Union[BaseModel, List[BaseModel]])
 
 
 def default_json_encoder(x):
@@ -80,7 +80,7 @@ class ResultEntity(BaseEntity, GenericModel, Generic[Model]):
     message: str = ""
 
     @classmethod
-    def ok(cls, data: Union[Model, Page] = None):
+    def ok(cls, data: Optional[Model] = None):
         return cls(data=data)
 
     @classmethod

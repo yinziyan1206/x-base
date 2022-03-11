@@ -11,18 +11,18 @@ from sqlalchemy.ext.declarative import declared_attr
 from sqlmodel import SQLModel, Field
 from sqlmodel.main import SQLModelMetaclass
 
-from .sequence import flake
+from ..native import cursor
 from ..core import entity
 
 
-def next_val():
-    while (index := flake()) == 0:
+def next_val() -> int:
+    while (index := cursor.fetch()) == 0:
         continue
     return index
 
 
 @functools.lru_cache
-def table_name_structure(name):
+def table_name_structure(name) -> str:
     output = []
     for i, c in enumerate(name.removesuffix('Model')):
         if c.isupper() and i > 0:

@@ -2,8 +2,9 @@ __author__ = 'ziyan.yin'
 
 import hashlib
 import hmac
-import base64
 from typing import Union
+
+import pybase64 as base64
 
 
 def md5(content: Union[str, bytes, bytearray, memoryview]) -> str:
@@ -112,3 +113,27 @@ def b64decode(content: Union[str, bytes, bytearray, memoryview]) -> bytes:
     if isinstance(content, str):
         content = content.encode()
     return base64.b64decode(content)
+
+
+def urlsafe_b64encode(content: Union[str, bytes, bytearray, memoryview]) -> bytes:
+    """
+        base64 urlsafe encode
+
+        :param content: words
+        :return: encrypted codes
+        """
+    if isinstance(content, str):
+        content = content.encode()
+    return base64.urlsafe_b64encode(content)
+
+
+def urlsafe_b64decode(content: Union[str, bytes, bytearray, memoryview]) -> bytes:
+    """
+        base64 urlsafe decode
+
+        :param content: words
+        :return: encrypted codes
+        """
+    if isinstance(content, str):
+        content = content.encode()
+    return base64.urlsafe_b64decode(content)

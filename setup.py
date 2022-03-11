@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
+import os
 import sys
 
 from Cython.Build import cythonize
@@ -13,6 +14,7 @@ REQUIREMENTS = [
     'orjson',
     'loguru',
     'PyYAML',
+    'pybase64',
     'pydantic',
     'dynaconf',
     'sqlalchemy[asyncio]>=1.4'
@@ -41,6 +43,23 @@ KEYWORDS = ["api", "x-api", "x-base", "basex"]
 packages = find_packages()
 
 
+def get_extensions():
+    extensions = []
+    for file in os.listdir('basex/native'):
+        if file.endswith('.pyx'):
+            module_name = file.removesuffix(".pyx")
+            modules = [f'basex/native/{file}']
+            if os.path.exists(f'basex/native/lib/{module_name}.c'):
+                modules.append(f'basex/native/lib/{module_name}.c')
+            extensions.append(
+                Extension(
+                    f'basex.native.{module_name}',
+                    modules
+                )
+            )
+    return extensions
+
+
 setup(
     name=NAME,
     version=VERSION,
@@ -50,17 +69,13 @@ setup(
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     license="BSD 2-Clause",
-    url=f"https://github.com/yinziyan1206/x-base",
+    url="https://github.com/yinziyan1206/x-base",
     packages=packages,
     install_requires=REQUIREMENTS,
     keywords=KEYWORDS,
     classifiers=CLASSIFIERS,
     ext_modules=cythonize(
-        [
-            Extension('basex.common.objectutils', ['basex/common/objectutils.pyx']),
-            Extension('basex.common.stringutils', ['basex/common/stringutils.pyx']),
-            Extension('basex.db.sequence', ['basex/db/sequence.pyx'])
-        ],
+        get_extensions(),
         language_level=3,
         compiler_directives={},
     )
