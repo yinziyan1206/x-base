@@ -43,7 +43,7 @@ def encode(claims: dict, key: str, algorithm='HS256', headers=None, access_token
     if algorithm not in jwk.HASHES:
         raise JWTError("Algorithm %s not supported." % algorithm)
 
-    for time_claim in ["exp", "iat", "nbf"]:
+    for time_claim in ("exp", "iat", "nbf"):
         # Convert datetime to a intDate value in known time-format claims
         if isinstance(claims.get(time_claim), datetime):
             claims[time_claim] = timegm(claims[time_claim].utctimetuple())
@@ -104,7 +104,7 @@ def _encode_payload(payload) -> bytes:
 
 
 def _sign_header_and_payload(encoded_header, encoded_payload, algorithm, key) -> str:
-    signing_input = b".".join([encoded_header, encoded_payload])
+    signing_input = encoded_header + b'.' + encoded_payload
     signature = sign(signing_input, key, algorithm)
     encoded_signature = b64encode(signature)
     return (b".".join([encoded_header, encoded_payload, encoded_signature])).decode('utf-8')

@@ -7,9 +7,10 @@ from sqlalchemy import func
 from sqlalchemy.sql import Select
 from sqlalchemy.sql.elements import TextClause
 
-from basex.core.entity import Page, DataTableEntity
-from basex.core.service import SessionService
-from basex.db.mapper import SqlModel
+from ..core.entity import Page, DataTableEntity
+from ..core.service import SessionService
+from ..db.mapper import SqlModel
+from ..native import _service
 
 try:
     import polars as dataframe
@@ -23,30 +24,30 @@ except ImportError:
 class DataFrameService(SessionService):
 
     if dataframe:
-        async def query_dataframe(self, sql: TextClause, **kwargs) -> dataframe.DataFrame:
-            res = (await self._execute_query(lambda x: x.execute(sql, kwargs))).mappings()
-            return dataframe.from_dicts([dict(x) for x in res.all()])
+        async def create_dataframe(self, sql: TextClause, **kwargs) -> dataframe.DataFrame:
+            res = (await self.execute(sql, kwargs)).mappings()
+            return dataframe.from_records([getattr(x, '_data') for x in res.all()], columns=list(res.keys()))
 
 
 class DataTableService(SessionService):
 
     async def parse_sql(self, sql: TextClause, **kwargs) -> DataTableEntity:
-        result = await self.query(sql, **kwargs)
+        result = await self.execute(sql, **kwargs)
         columns = list(result.keys())
         if rows := result.all():
             return DataTableEntity(
                 name="",
                 header=columns,
-                data=[tuple(row) for row in rows]
+                data=[getattr(row, '_data') for row in rows]
             )
         return DataTableEntity(name="", header=columns, data=[])
 
     async def parse_stmt(self, stmt: Select) -> DataTableEntity:
-        if rows := await self.select(stmt):
+        if rows := (await self.execute(stmt)).mappings().all():
             return DataTableEntity(
                 name="",
                 header=rows[0].keys(),
-                data=[tuple(row) for row in rows]
+                data=[getattr(row, '_data') for row in rows]
             )
         return DataTableEntity(name="", header=[], data=[])
 
@@ -72,36 +73,28 @@ class DataTableService(SessionService):
 
 class PageFilterService(SessionService):
 
-    async def query_page(self, page: Page, stmt: Select) -> Page:
-        page.current = 1 if page.current < 1 else page.current
-        page.size = 10 if page.size < 1 else page.size
-        page.orders = [] if not page.orders else page.orders
+    async def paginate(self, page: Page, statement: Select) -> Page:
+        page.current = page.current if page.current > 1 else 1
+        page.size = page.size if 1 < page.size < 65536 else 10
+        page.orders = page.orders or []
 
-        async def _execute(session):
-            count_stmt = stmt.with_only_columns(func.count())
-            res = await session.scalars(
-                count_stmt.where(count_stmt.exported_columns['deleted'] == 0)
-            )
-            if item := res.first():
-                page.total = item
-                page.pages = int((page.total - 1) / page.size) + 1
+        count_stmt = statement.with_only_columns(func.count())
+        stmt_order = statement
+        page.records = []
 
-            stmt_order = stmt
-            for order in page.orders:
-                stmt_order = stmt_order.order_by(
-                    stmt.exported_columns[order.column] if order.asc else stmt.exported_columns[order.column].desc()
-                )
+        res = await self.scalars(
+            count_stmt.where(count_stmt.exported_columns['deleted'] == 0)
+        )
 
-            stream = (await session.stream(
+        if count := res.first():
+            _service.paginate(page, statement.exported_columns, stmt_order, count)
+
+            stream = self.stream_mappings(
                 stmt_order.where(
-                    stmt.exported_columns["deleted"] == 0
+                    statement.exported_columns["deleted"] == 0
                 ).limit(page.size).offset((page.current - 1) * page.size)
-            )).mappings()
-
-            records = []
+            )
             async for data in stream:
-                records.append(page.model.parse_obj(data))
-            return records
+                page.records.append(page.model.parse_obj(data))
 
-        page.records = await self._execute_query(_execute)
         return page

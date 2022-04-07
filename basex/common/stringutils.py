@@ -3,7 +3,7 @@ __author__ = 'ziyan.yin'
 import datetime
 from typing import Optional
 
-from ..native import native_utils
+from ..native import utils
 
 
 def is_empty(arg: Optional[str]) -> bool:
@@ -19,30 +19,13 @@ def is_empty(arg: Optional[str]) -> bool:
     return False
 
 
-def is_blank(arg: Optional[str]) -> bool:
-    if arg is None:
-        return False
-    return native_utils.check_blank(arg.encode())
-
-
 def is_number(arg: str) -> bool:
     """
         string is number like 1.0, -1
             >>> is_number('1.5')
             True
     """
-    if arg is None:
-        return False
-    return native_utils.check_number(arg.encode())
-
-
-def is_digit(arg: str) -> bool:
-    """
-        isdigit() method
-    """
-    if arg is None:
-        return False
-    return arg.isdigit()
+    return utils.check_number(arg)
 
 
 def is_bool(arg: str) -> bool:
@@ -78,8 +61,8 @@ def is_chinese(arg: str) -> bool:
             True
     """
     if arg is None:
-        return False
-    return native_utils.check_chinese(arg.encode())
+        return True
+    return utils.check_chinese(arg.encode())
 
 
 def is_letter(arg: str) -> bool:
@@ -88,28 +71,4 @@ def is_letter(arg: str) -> bool:
             >>> is_letter('ab12123')
             True
     """
-    if arg is None:
-        return False
-    return native_utils.check_letter(arg.encode())
-
-
-def is_alpha(arg: str) -> bool:
-    """
-        check if string is alpha
-            >>> is_alpha('ababc')
-            True
-    """
-    if arg is None:
-        return False
-    return native_utils.check_alpha(arg.encode())
-
-
-def is_title(arg: str) -> bool:
-    """
-        check if string is tag format
-            >>> is_title('Abc_1234')
-            True
-    """
-    if arg is None:
-        return False
-    return native_utils.check_title(arg.encode())
+    return utils.check_letter(arg)

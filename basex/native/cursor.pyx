@@ -10,12 +10,11 @@ cimport cython
 cdef long long _last_point = 0
 cdef int _last_sequence = 0
 cdef int _sequence_length = 8
-cdef int _machine_id = (os.getpid() % 256)
+cdef int _machine_id = (os.getpid() % 0x100)
 cdef double _start_point = datetime.datetime(2020, 1, 1).timestamp()
 
 
-@cython.infer_types(True)
-cpdef long long fetch():
+cdef long long fetch():
     global _last_sequence
     global _last_point
 
@@ -32,3 +31,9 @@ cpdef long long fetch():
     return (_last_point << (_sequence_length + 8)) + (_machine_id << _sequence_length) + count
 
 
+@cython.infer_types(True)
+def next_val() -> int:
+    index = fetch()
+    while index == 0:
+        index = fetch()
+    return index

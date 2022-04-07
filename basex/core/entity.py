@@ -1,7 +1,7 @@
 __author__ = 'ziyan.yin'
 __describe__ = 'base entity'
 
-from typing import TypeVar, Generic, Optional, List, Union
+from typing import TypeVar, Generic, Optional, List, Union, Dict
 
 import orjson
 from pydantic import BaseModel, BaseConfig
@@ -10,8 +10,9 @@ from pydantic.generics import GenericModel
 
 from .enums import ResultEnum
 
-
-Model = TypeVar('Model', bound=Union[BaseModel, List[BaseModel]])
+Model = TypeVar('Model', bound=BaseModel)
+BasicEntity = Union[BaseModel, str, int, float, bool, None]
+Entity = TypeVar('Entity', bound=Union[BasicEntity, Dict[str, BasicEntity], List[BasicEntity]])
 
 
 def default_json_encoder(x):
@@ -55,7 +56,7 @@ class Page(BaseEntity, GenericModel, Generic[Model]):
 
 
 class BusinessError(Exception):
-    __slots__ = ['code', 'message']
+    __slots__ = ('code', 'message')
 
     def __init__(self, result: ResultEnum = None, code: str = "00000", message: str = ""):
         if result:
@@ -73,14 +74,14 @@ class BusinessError(Exception):
         return '[%s]%s' % (self.code, self.message)
 
 
-class ResultEntity(BaseEntity, GenericModel, Generic[Model]):
+class ResultEntity(BaseEntity, GenericModel, Generic[Entity]):
     code: str = "00000"
     success: bool = True
-    data: Optional[Model] = None
+    data: Optional[Entity] = None
     message: str = ""
 
     @classmethod
-    def ok(cls, data: Optional[Model] = None):
+    def ok(cls, data: Optional[Entity] = None):
         return cls(data=data)
 
     @classmethod

@@ -14,7 +14,6 @@ class LoggerHandler(logging.Handler):
         handle(record)
 
 
-@cython.infer_types(True)
 cdef void handle(record):
     # Find caller from where originated the logged message
     frame: FrameType = logging.currentframe()
@@ -26,5 +25,6 @@ cdef void handle(record):
     logger.opt(depth=depth, exception=record.exc_info).log(record.levelname, record.getMessage())
 
 
-def intercept(module=None):
+@cython.infer_types(True)
+def intercept(module: str = None):
     logging.getLogger(module).handlers = [LoggerHandler()]

@@ -8,17 +8,10 @@ from typing import Optional
 import orjson
 from sqlalchemy import Column, SmallInteger, BigInteger
 from sqlalchemy.ext.declarative import declared_attr
-from sqlmodel import SQLModel, Field
-from sqlmodel.main import SQLModelMetaclass
+from sqlmodel import SQLModel as _Model, Field
 
-from ..native import cursor
 from ..core import entity
-
-
-def next_val() -> int:
-    while (index := cursor.fetch()) == 0:
-        continue
-    return index
+from ..native.cursor import next_val
 
 
 @functools.lru_cache
@@ -31,7 +24,9 @@ def table_name_structure(name) -> str:
     return ''.join(output)
 
 
-class SqlModel(SQLModel, metaclass=SQLModelMetaclass):
+class SqlModel(_Model, table=False):
+    __bind_key__ = 'default'
+
     id: int = Field(
         default_factory=next_val,
         sa_column=Column(BigInteger(), primary_key=True, autoincrement=False)

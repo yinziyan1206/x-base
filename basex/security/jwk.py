@@ -17,12 +17,12 @@ class HMACKey:
 
     def __init__(self, key: bytes, algorithm: str):
         self._hash_alg = HASHES.get(algorithm)
-        invalid_strings = [
+        invalid_strings = (
             b"-----BEGIN PUBLIC KEY-----",
             b"-----BEGIN RSA PUBLIC KEY-----",
             b"-----BEGIN CERTIFICATE-----",
             b"ssh-rsa",
-        ]
+        )
         if any(string_value in key for string_value in invalid_strings):
             raise JWKError(
                 "The specified key is an asymmetric key or x509 certificate and"

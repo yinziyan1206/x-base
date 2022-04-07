@@ -2,11 +2,12 @@ __author__ = 'ziyan.yin'
 __describe__ = 'type decorator'
 
 from enum import Enum
-from typing import List, Type
+from typing import Collection, List, Type
 
 from sqlalchemy import TypeDecorator, String, SmallInteger, JSON
 
-from basex.core.entity import BaseEntity
+from ..core.entity import BaseEntity
+from ..native import _decorator
 
 
 def get_value_error(origin, dest) -> ValueError:
@@ -51,23 +52,23 @@ class IdArrayDecorator(TypeDecorator):
         Column type for storing Python List[int] in a database String column.
     """
 
-    impl = String
+    impl = String(255)
 
     @property
     def python_type(self):
         return List
 
     def process_bind_param(self, value, dialect):
-        if isinstance(value, (list, tuple, set, frozenset)):
+        if isinstance(value, Collection):
             if not value:
-                return []
-            return ','.join([str(x) for x in value])
+                return ''
+            return _decorator.id_array_encoder(value)
         raise get_value_error('List[int]', value)
 
     def process_result_value(self, value, dialect):
         if value is None:
             return None
-        return [int(x) for x in value.split(',')]
+        return _decorator.id_array_decoder(value)
 
     def copy(self, **kwargs):
         return IdArrayDecorator()
