@@ -2,7 +2,7 @@ __author__ = 'ziyan.yin'
 __describe__ = ''
 
 cimport cython
-from cpython.list cimport PyList_Check
+from cpython.list cimport PyList_Check, PyList_Size
 from cpython.object cimport PyObject_HasAttrString, PyObject_GetAttrString, PyObject_GetAttr
 from cpython.set cimport PySet_Contains
 from cpython.dict cimport PyDict_Contains, PyDict_SetItem, PyDict_Items
@@ -35,12 +35,12 @@ cpdef void paginate(object page, object columns, object stmt, long long total):
     page.total = total
     page.pages = ((total - 1) / size) + 1
 
-    if PyList_Check(page.orders):
-        for order in page.orders:
-            stmt = stmt.order_by(
-                PyObject_GetAttr(columns, order.column)
-                if order.asc else PyObject_GetAttr(columns, order.column).desc()
-            )
+    if PyList_Check(page.orders) and PyList_Size(page.orders) > 0:
+        stmt._order_by_clauses = [
+            PyObject_GetAttr(columns, order.column) if order.asc else PyObject_GetAttr(columns, order.column).desc()
+            for order in page.orders
+        ]
+
 
 
 cpdef object generic_model(object instance):

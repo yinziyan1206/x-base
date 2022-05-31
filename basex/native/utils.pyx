@@ -2,15 +2,16 @@ __author__ = 'ziyan.yin'
 __describe__ = 'native utils interface'
 
 from libc.string cimport strlen
-from cpython.unicode cimport Py_UNICODE_ISUPPER, PyUnicode_AS_DATA, Py_UNICODE_ISLOWER
+from cpython.unicode cimport PyUnicode_GET_LENGTH, Py_UNICODE_ISUPPER, PyUnicode_AS_DATA, Py_UNICODE_ISLOWER
 
 
-cpdef bint check_number(object context):
+cpdef bint check_number(unicode context):
     if context is None:
         return False
     cdef int negative = 0
     cdef bint is_float = False
-    cdef int n = len(context)
+    cdef Py_ssize_t n = PyUnicode_GET_LENGTH(context)
+    cdef char* arg
     if n < 1:
         return False
     if context[0] == '-':
@@ -34,7 +35,7 @@ cpdef bint check_number(object context):
 cpdef bint check_chinese(char* args):
     cdef size_t n = strlen(args)
     cdef int i = 0
-    cdef unsigned char* word_arr = b''
+    cdef unsigned char word_arr[2]
     while i < n:
         if args[i] & 0x80 == 0:
             i += 1
@@ -50,7 +51,7 @@ cpdef bint check_chinese(char* args):
     return False
 
 
-cpdef bint check_letter(object context):
+cpdef bint check_letter(unicode context):
     if context is None:
         return True
     for ch in context:

@@ -19,7 +19,7 @@ transaction_group: Dict[str, ContextWrapper[AsyncSessionTransaction]] = {}
 def initial_engine():
     global engine
     global create_session
-    global _binds
+    global transaction_group
     for tag, db in settings.datasource.items():
         transaction_group[tag] = ContextWrapper[AsyncSessionTransaction]('transaction')
         if tag != 'expire_on_commit':

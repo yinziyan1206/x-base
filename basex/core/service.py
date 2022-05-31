@@ -9,7 +9,7 @@ from sqlalchemy import func
 from sqlalchemy.engine import Result, ScalarResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.sql import Select, Executable
+from sqlalchemy.sql import Select, Selectable
 
 from .entity import Page
 from ..db.mapper import SqlModel
@@ -60,7 +60,7 @@ class SessionService:
         return 'default'
 
     @staticmethod
-    def statement_intercept(statement: Executable) -> Executable:
+    def statement_intercept(statement: Selectable) -> Selectable:
         if isinstance(statement, Select) and 'deleted' in statement.exported_columns:
             return statement.where(statement.exported_columns['deleted'] == 0)
         return statement
@@ -105,9 +105,9 @@ class BaseService(Generic[Model], SessionService):
                 data.modify_time = datetime.datetime.now()
                 x.add(data)
             await self._method_wrapper(_logic_delete)
-            return 1
-        res = await self._method_wrapper(lambda x: x.delete(data))
-        return res.rowcount
+        else:
+            await self._execute_wrapper(lambda x: x.delete(data))
+        return 1
 
     async def create_batch(self, *data: Model) -> List[Model]:
         for d in data:

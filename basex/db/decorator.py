@@ -2,8 +2,9 @@ __author__ = 'ziyan.yin'
 __describe__ = 'type decorator'
 
 from enum import Enum
-from typing import Collection, List, Type
+from typing import List, Type
 
+import orjson
 from sqlalchemy import TypeDecorator, String, SmallInteger, JSON
 
 from ..core.entity import BaseEntity
@@ -36,7 +37,7 @@ class IntEnumDecorator(TypeDecorator):
     def process_bind_param(self, value, dialect):
         if isinstance(value, self.enum_type):
             return value.value
-        raise get_value_error(self.enum_type.__name__, value.__name__)
+        raise get_value_error(self.enum_type.__class__.__name__, value)
 
     def process_result_value(self, value, dialect):
         if value is None:
@@ -52,22 +53,22 @@ class IdArrayDecorator(TypeDecorator):
         Column type for storing Python List[int] in a database String column.
     """
 
-    impl = String(255)
+    impl = String
 
     @property
     def python_type(self):
         return List
 
     def process_bind_param(self, value, dialect):
-        if isinstance(value, Collection):
+        if isinstance(value, List):
             if not value:
                 return ''
             return _decorator.id_array_encoder(value)
         raise get_value_error('List[int]', value)
 
     def process_result_value(self, value, dialect):
-        if value is None:
-            return None
+        if not value:
+            return []
         return _decorator.id_array_decoder(value)
 
     def copy(self, **kwargs):
@@ -90,14 +91,40 @@ class JsonDecorator(TypeDecorator):
         self.model: Type[BaseEntity] = model
 
     def process_bind_param(self, value, dialect):
+        if value is None:
+            return None
         if isinstance(value, self.model):
-            return value.json()
+            return orjson.dumps(value.dict()).decode()
         raise get_value_error(self.model.__name__, value.__name__)
 
     def process_result_value(self, value, dialect):
         if value is None:
             return None
-        return self.model.parse_raw(value)
+        return self.model.parse_obj(orjson.loads(value))
 
     def copy(self, **kwargs):
         return JsonDecorator(self.model)
+
+
+class DictDecorator(TypeDecorator):
+    """
+        Column type for storing Python dict in a database Json column.
+    """
+    impl = JSON
+
+    @property
+    def python_type(self) -> type:
+        return dict
+
+    def process_bind_param(self, value, dialect) -> str:
+        if isinstance(value, self.python_type):
+            if not value:
+                return '{}'
+            return orjson.dumps(value).decode()
+        raise get_value_error('dict', value)
+
+    def process_result_value(self, value, dialect) -> dict:
+        return orjson.loads(value)
+
+    def copy(self):
+        return DictDecorator()

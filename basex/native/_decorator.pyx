@@ -7,10 +7,10 @@ from cpython.unicode cimport PyUnicode_Split, PyUnicode_Join
 
 
 cpdef str id_array_encoder(list arr):
-    cdef object str_buf = []
+    cdef list str_buf = []
     for num in arr:
         if not PyInt_Check(num):
-            continue
+            raise TypeError('id_array_encoder only accept int type')
         PyList_Append(str_buf, str(num))
     output = PyUnicode_Join(',', str_buf)
     return output
@@ -18,5 +18,4 @@ cpdef str id_array_encoder(list arr):
 
 cpdef list id_array_decoder(object value):
     cdef list arr = PyUnicode_Split(value, ',', 128)
-    output = [int(x) for x in arr]
-    return output
+    return [int(i) for i in arr]

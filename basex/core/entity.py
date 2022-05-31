@@ -3,7 +3,6 @@ __describe__ = 'base entity'
 
 from typing import TypeVar, Generic, Optional, List, Union, Dict
 
-import orjson
 from pydantic import BaseModel, BaseConfig
 from pydantic.fields import ModelField
 from pydantic.generics import GenericModel
@@ -11,33 +10,22 @@ from pydantic.generics import GenericModel
 from .enums import ResultEnum
 
 Model = TypeVar('Model', bound=BaseModel)
-BasicEntity = Union[BaseModel, str, int, float, bool, None]
-Entity = TypeVar('Entity', bound=Union[BasicEntity, Dict[str, BasicEntity], List[BasicEntity]])
+InnerEntity = Union[BaseModel, str, int, float, bool, None]
+Entity = TypeVar('Entity', bound=Union[InnerEntity, Dict[str, InnerEntity], List[InnerEntity]])
 
 
 def default_json_encoder(x):
     return x
 
 
-def json_dumps_ex(v, *, indent=None, default=None, sort_keys=False):
-    option = orjson.OPT_UTC_Z | orjson.OPT_SERIALIZE_NUMPY
-    if sort_keys:
-        option |= orjson.OPT_SORT_KEYS
-    if indent:
-        option |= orjson.OPT_INDENT_2
-    return orjson.dumps(v, default=default, option=option).decode()
-
-
 class BaseEntity(BaseModel):
-    __json_encoder__ = default_json_encoder
 
     class Config(BaseConfig):
-        json_loads = orjson.loads
-        json_dumps = json_dumps_ex
+        json_encoders = {dict: default_json_encoder}
 
 
 class OrderItem(BaseEntity):
-    asc: bool
+    asc: bool = True
     column: str
 
 

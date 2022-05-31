@@ -195,14 +195,14 @@ class BaseEnum(IntEnum):
 
 
 class StatusEnum(BaseEnum):
-    PRIMARY = 0
+    IDLE = 0
     ACTIVE = 1
     RUNNING = 2
     PAUSED = 3
-    SLEEPING = 5
-    STOPPED = 6
-    KILLED = 7
-    TERMINATED = 12
+    SLEEPING = 4
+    STOPPED = 5
+    DEAD = 6
+    ZOMBIE = 12
 
 
 class GenderEnum(BaseEnum):

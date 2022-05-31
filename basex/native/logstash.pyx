@@ -14,11 +14,12 @@ class LoggerHandler(logging.Handler):
         handle(record)
 
 
-cdef void handle(record):
+cdef void handle(object record):
     # Find caller from where originated the logged message
     frame: FrameType = logging.currentframe()
     cdef int depth = 2
-    while frame.f_code.co_filename == logging.__file__:
+    cdef unicode file_name = logging.__file__
+    while frame.f_code.co_filename == file_name:
         frame = frame.f_back
         depth += 1
 

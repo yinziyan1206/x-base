@@ -63,5 +63,5 @@ async def stream_wrapper(stream: Callable[[AsyncSession], Any], database: str = 
             await session.commit()
 
 
-def get_binds(model):
+cpdef unicode get_binds(object model):
     return model.__bind_key__

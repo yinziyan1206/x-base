@@ -76,7 +76,6 @@ setup(
     classifiers=CLASSIFIERS,
     ext_modules=cythonize(
         get_extensions(),
-        language_level=3,
-        compiler_directives={},
+        compiler_directives={"language_level": 3},
     )
 )
